@@ -36,11 +36,15 @@ def append_results(results: list[FlightResult]) -> None:
                 "origin": r.origin,
                 "destination": r.destination,
                 "departure_date": r.departure_date,
+                "return_origin": r.return_origin,
+                "return_date": r.return_date,
                 "price_usd": r.price_usd,
                 "airline": r.airline,
                 "duration_hours": r.duration_hours,
                 "stops": r.stops,
                 "source": r.source,
+                "url": r.url,
+                "return_url": r.return_url,
             }
         )
     PRICE_HISTORY_FILE.write_text(

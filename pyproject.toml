@@ -12,7 +12,6 @@ dependencies = [
     "typer[all]>=0.12",
     "rich>=13.7",
     "fast-flights>=0.2",
-    "amadeus>=9.0",
     "apscheduler>=3.10",
     "python-telegram-bot>=21.0",
     "pydantic-settings>=2.3",

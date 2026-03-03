@@ -53,29 +53,44 @@ def flights_check(
     append_results(results)
 
     # Tabla de mejores opciones
-    table = Table(title=f"Top {top} vuelos encontrados", show_lines=True)
-    table.add_column("Ruta", style="cyan")
-    table.add_column("Fecha", style="white")
+    table = Table(title=f"Top {top} vuelos — precio combinado (salida + vuelta)", show_lines=True)
+    table.add_column("Salida", style="white")
+    table.add_column("Vuelta", style="white")
+    table.add_column("Días", justify="center", style="dim")
+    table.add_column("Ruta ida", style="cyan")
+    table.add_column("Ruta vuelta", style="cyan")
     table.add_column("Precio USD", style="bold green", justify="right")
     table.add_column("Aerolínea", style="white")
-    table.add_column("Escalas", justify="center")
-    table.add_column("Duración", justify="right")
     table.add_column("Fuente", style="dim")
 
     for r in results[:top]:
-        duration_str = f"{int(r.duration_hours)}h {int((r.duration_hours % 1) * 60)}m"
-        stops_str = "✈️ directo" if r.stops == 0 else f"{r.stops} escala{'s' if r.stops > 1 else ''}"
+        ret_origin = r.return_origin or r.destination
+        total_days = ""
+        if r.return_date:
+            import datetime as _dt
+            d = (_dt.date.fromisoformat(r.return_date) - _dt.date.fromisoformat(r.departure_date)).days
+            total_days = str(d)
         table.add_row(
-            f"{r.origin}→{r.destination}",
             r.departure_date,
+            r.return_date,
+            total_days,
+            f"{r.origin}→{r.destination}",
+            f"{ret_origin}→{r.origin}",
             f"${r.price_usd:,.0f}",
             r.airline,
-            stops_str,
-            duration_str,
             r.source,
         )
 
     console.print(table)
+
+    # Links del vuelo más barato
+    best = results[0]
+    ret_origin = best.return_origin or best.destination
+    if best.url:
+        console.print(f"\n[bold]🔗 Salida ({best.origin}→{best.destination}):[/bold] {best.url}")
+    if best.return_url:
+        console.print(f"[bold]🔗 Vuelta ({ret_origin}→{best.origin}):[/bold] {best.return_url}\n")
+
     evaluate_and_dispatch(results, threshold)
 
 
@@ -121,19 +136,25 @@ def flights_history(
 
     table = Table(title=f"Historial — últimos {len(records)} registros", show_lines=True)
     table.add_column("Chequeado", style="dim")
-    table.add_column("Ruta", style="cyan")
-    table.add_column("Fecha vuelo", style="white")
+    table.add_column("Salida", style="white")
+    table.add_column("Vuelta", style="white")
+    table.add_column("Ruta ida", style="cyan")
+    table.add_column("Vuelta desde", style="cyan")
     table.add_column("Precio USD", style="bold green", justify="right")
-    table.add_column("Aerolínea", style="white")
     table.add_column("Fuente", style="dim")
 
     for r in records:
+        ret_orig = r.get("return_origin", "—") or "—"
+        dest = r.get("destination", "?")
+        origin = r.get("origin", "?")
+        ret_route = f"{ret_orig}→{origin}" if ret_orig != "—" else "—"
         table.add_row(
             r["checked_at"][:19].replace("T", " "),
-            f"{r['origin']}→{r['destination']}",
             r["departure_date"],
+            r.get("return_date", "—"),
+            f"{origin}→{dest}",
+            ret_route,
             f"${r['price_usd']:,.0f}",
-            r["airline"],
             r["source"],
         )
 

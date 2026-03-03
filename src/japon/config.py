@@ -25,13 +25,22 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
 
-    # Amadeus (fallback)
-    amadeus_api_key: str = ""
-    amadeus_api_secret: str = ""
-
     # Configuración bot
-    flight_price_threshold_usd: Annotated[float, Field(gt=0)] = 1200.0
+    flight_price_threshold_usd: Annotated[float, Field(gt=0)] = 2000.0
     monitor_interval_minutes: Annotated[int, Field(gt=0)] = 60
+
+    # Itinerario asimétrico: salida por Tokio, vuelta desde Tailandia
+    return_origin_iata: str = "BKK"      # aeropuerto desde el que se vuelve a casa
+    japan_stay_days: str = "13,16"       # días representativos en Japón
+    thailand_stay_days: str = "6,9"      # días representativos en Tailandia
+
+    @property
+    def japan_stays(self) -> list[int]:
+        return [int(d.strip()) for d in self.japan_stay_days.split(",")]
+
+    @property
+    def thailand_stays(self) -> list[int]:
+        return [int(d.strip()) for d in self.thailand_stay_days.split(",")]
 
     # Ruta de vuelo
     origin_iata: str = "EZE"
@@ -49,10 +58,6 @@ class Settings(BaseSettings):
     @property
     def telegram_enabled(self) -> bool:
         return bool(self.telegram_bot_token and self.telegram_chat_id)
-
-    @property
-    def amadeus_enabled(self) -> bool:
-        return bool(self.amadeus_api_key and self.amadeus_api_secret)
 
 
 # Instancia singleton

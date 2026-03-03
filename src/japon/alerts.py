@@ -16,18 +16,37 @@ console = Console()
 
 
 def _render_alert_panel(result: FlightResult, threshold: float) -> Panel:
+    from datetime import date as _date
+
     pct_below = (threshold - result.price_usd) / threshold * 100
     stops_str = "Directo" if result.stops == 0 else f"{result.stops} escala{'s' if result.stops > 1 else ''}"
     duration_str = f"{int(result.duration_hours)}h {int((result.duration_hours % 1) * 60)}m"
+    ret_origin = result.return_origin or result.destination
 
     body = Text()
-    body.append(f"{result.origin} → {result.destination}", style="bold cyan")
+    body.append(f"{result.origin}→{result.destination}", style="bold cyan")
+    body.append(f"  +  ", style="dim")
+    body.append(f"{ret_origin}→{result.origin}", style="bold cyan")
     body.append(f"  |  USD {result.price_usd:,.0f}", style="bold green")
     body.append(f"\n¡{pct_below:.1f}% bajo tu umbral de ${threshold:,.0f}!\n", style="yellow")
     body.append(f"\n✈️  {result.airline}", style="white")
     body.append(f"  |  {stops_str}  |  {duration_str}\n", style="dim")
-    body.append(f"📅  Salida: {result.departure_date}\n", style="white")
+
+    if result.return_date:
+        dep = _date.fromisoformat(result.departure_date)
+        ret = _date.fromisoformat(result.return_date)
+        total_days = (ret - dep).days
+        body.append(f"📅  Salida: {result.departure_date} ({result.origin}→{result.destination})\n", style="white")
+        body.append(f"📅  Vuelta: {result.return_date} ({ret_origin}→{result.origin})  — {total_days} días\n", style="white")
+    else:
+        body.append(f"📅  Salida: {result.departure_date}\n", style="white")
+
     body.append(f"📊  Fuente: {result.source}", style="dim")
+
+    if result.url:
+        body.append(f"\n🔗  Salida: {result.url}", style="blue underline")
+    if result.return_url:
+        body.append(f"\n🔗  Vuelta: {result.return_url}", style="blue underline")
 
     return Panel(
         body,

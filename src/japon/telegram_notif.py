@@ -13,16 +13,40 @@ console = Console()
 
 
 def _build_message(result: FlightResult, threshold: float) -> str:
+    from datetime import date as _date
+
     pct_below = round((threshold - result.price_usd) / threshold * 100, 1)
     stops_str = "directo" if result.stops == 0 else f"{result.stops} escala{'s' if result.stops > 1 else ''}"
     duration_str = f"{int(result.duration_hours)}h {int((result.duration_hours % 1) * 60)}m"
+
+    ret_origin = result.return_origin or result.destination
+    route_str = f"`{result.origin}`→`{result.destination}` + `{ret_origin}`→`{result.origin}`"
+
+    if result.return_date:
+        dep = _date.fromisoformat(result.departure_date)
+        ret = _date.fromisoformat(result.return_date)
+        total_days = (ret - dep).days
+        dates_str = (
+            f"📅 Salida: {result.departure_date} ({result.origin}→{result.destination})\n"
+            f"📅 Vuelta: {result.return_date} ({ret_origin}→{result.origin}) — {total_days} días\n"
+        )
+    else:
+        dates_str = f"📅 Salida: {result.departure_date}\n"
+
+    links_str = ""
+    if result.url:
+        links_str += f"\n🔗 [Salida — {result.origin}→{result.destination}]({result.url})"
+    if result.return_url:
+        links_str += f"\n🔗 [Vuelta — {ret_origin}→{result.origin}]({result.return_url})"
+
     return (
         f"🛫 *OFERTA DE VUELO*\n"
-        f"`{result.origin}` → `{result.destination}` | *USD {result.price_usd:,.0f}*\n"
+        f"{route_str} | *USD {result.price_usd:,.0f}*\n"
         f"¡{pct_below}% bajo tu umbral de ${threshold:,.0f}!\n\n"
         f"✈️ {result.airline} | {stops_str} | {duration_str}\n"
-        f"📅 Salida: {result.departure_date}\n"
+        f"{dates_str}"
         f"📊 Fuente: {result.source}"
+        f"{links_str}"
     )
 
 
