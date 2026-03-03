@@ -1,0 +1,13 @@
+# No subir a Railway
+.env
+.venv/
+venv/
+.uv/
+__pycache__/
+*.pyc
+data/price_history.json
+docs/
+skills/
+.git/
+.gitignore
+README.md

@@ -1,0 +1,32 @@
+# Railway deployment — Viaje Japón 2027
+# Documentación: https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Cron: busca vuelos cada 6 horas (ajustar según preferencia)
+# Formato cron estándar: minuto hora día mes día-semana
+# "0 */6 * * *" = cada 6 horas
+# "0 8,14,20 * * *" = a las 8, 14 y 20hs (horario UTC — ajustar según timezone)
+cronSchedule = "0 */6 * * *"
+
+startCommand = "uv run japon flights check"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Variables de entorno a configurar en Railway Dashboard → Variables:
+#
+#   TELEGRAM_BOT_TOKEN          (requerido para alertas)
+#   TELEGRAM_CHAT_ID            (requerido para alertas)
+#   FLIGHT_PRICE_THRESHOLD_USD  (default: 1200)
+#   TARGET_MONTHS               (default: 2027-02,2027-03)
+#   ORIGIN_IATA                 (default: EZE)
+#   DESTINATION_IATA            (default: NRT,HND)
+#   AMADEUS_API_KEY             (opcional, fallback)
+#   AMADEUS_API_SECRET          (opcional, fallback)
+#
+# Volume para persistir historial de precios:
+#   Railway Dashboard → tu servicio → Volumes → Add Volume
+#   Mount path: /app/data
