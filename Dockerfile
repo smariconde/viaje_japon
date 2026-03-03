@@ -6,7 +6,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 # Copiar definición de dependencias primero (mejor cache de capas)
-COPY pyproject.toml .
+COPY pyproject.toml README.md ./
 COPY src/ ./src/
 
 # Instalar dependencias del proyecto
